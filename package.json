@@ -1,5 +1,6 @@
 {
   "name": "stl-loading-demo",
+  "type": "module",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -19,5 +20,8 @@
   "homepage": "https://github.com/scotthallock/stl-loading-demo#readme",
   "dependencies": {
     "three": "^0.151.3"
+  },
+  "devDependencies": {
+    "vite": "^4.2.1"
   }
 }
