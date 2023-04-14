@@ -1,0 +1,23 @@
+{
+  "name": "stl-loading-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scotthallock/stl-loading-demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/scotthallock/stl-loading-demo/issues"
+  },
+  "homepage": "https://github.com/scotthallock/stl-loading-demo#readme",
+  "dependencies": {
+    "three": "^0.151.3"
+  }
+}
