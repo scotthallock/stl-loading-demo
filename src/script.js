@@ -6,11 +6,10 @@ import Stats from "three/examples/jsm/libs/stats.module";
 const scene = new THREE.Scene();
 scene.add(new THREE.AxesHelper(5));
 
-const spotLight = new THREE.SpotLight();
-spotLight.position.set(20, 20, 20);
-const ambientLight = new THREE.AmbientLight();
-scene.add(spotLight);
-scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight();
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+// scene.add(directionalLight);
+// scene.add(ambientLight);
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -18,7 +17,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.z = 3;
+camera.position.z = 10;
 
 const renderer = new THREE.WebGLRenderer();
 renderer.outputEncoding = THREE.sRGBEncoding;
@@ -28,32 +27,16 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-const envTexture = new THREE.CubeTextureLoader().load([
-  "img/px_50.png",
-  "img/nx_50.png",
-  "img/py_50.png",
-  "img/ny_50.png",
-  "img/pz_50.png",
-  "img/nz_50.png",
-]);
-envTexture.mapping = THREE.CubeReflectionMapping;
-
-const material = new THREE.MeshPhysicalMaterial({
-  color: 0xb2ffc8,
-  envMap: envTexture,
-  metalness: 0.25,
-  roughness: 0.1,
-  opacity: 1.0,
-  transparent: true,
-  transmission: 0.99,
-  clearcoat: 1.0,
-  clearcoatRoughness: 0.25,
+const material = new THREE.MeshLambertMaterial({
+  color: 0x00ffff,
 });
 
 const loader = new STLLoader();
 loader.load(
-  "./models/3DBenchy.stl",
+  "./models/hand_low_poly.stl",
   function (geometry) {
+    const SCALE_FACTOR = 0.12;
+    geometry.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
   },
@@ -91,3 +74,36 @@ function render() {
 }
 
 animate();
+
+// AXES HELPER
+const axesHelper = new THREE.AxesHelper(100);
+scene.add(axesHelper);
+
+// Lights
+const lights = [];
+const lightHelpers = [];
+const lightValues = [
+  { colour: 0xb85412, intensity: 8, dist: 12, x: 1, y: 0, z: 8 },
+  { colour: 0x17bfb1, intensity: 6, dist: 12, x: -2, y: 1, z: -10 },
+  { colour: 0x1566a1, intensity: 3, dist: 10, x: 0, y: 10, z: 1 },
+  { colour: 0x541cbd, intensity: 6, dist: 12, x: 0, y: -10, z: -1 },
+  { colour: 0xad18a8, intensity: 6, dist: 12, x: 10, y: 3, z: 0 },
+  { colour: 0xb51638, intensity: 6, dist: 12, x: -10, y: -1, z: 0 },
+];
+for (let i = 0; i < 6; i++) {
+  lights[i] = new THREE.PointLight(
+    lightValues[i]["colour"],
+    lightValues[i]["intensity"],
+    lightValues[i]["dist"]
+  );
+  lights[i].position.set(
+    lightValues[i]["x"],
+    lightValues[i]["y"],
+    lightValues[i]["z"]
+  );
+  scene.add(lights[i]);
+
+  //Helpers
+  lightHelpers[i] = new THREE.PointLightHelper(lights[i], 0.7);
+  scene.add(lightHelpers[i]);
+}
