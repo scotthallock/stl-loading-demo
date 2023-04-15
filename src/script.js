@@ -3,107 +3,186 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import Stats from "three/examples/jsm/libs/stats.module";
 
-const scene = new THREE.Scene();
-scene.add(new THREE.AxesHelper(5));
+let container, stats, controls;
 
-const directionalLight = new THREE.DirectionalLight();
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-// scene.add(directionalLight);
-// scene.add(ambientLight);
+const clock = new THREE.Clock();
 
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.z = 10;
+let camera, scene, renderer;
 
-const renderer = new THREE.WebGLRenderer();
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+let mouseX = 0;
+let mouseY = 0;
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+let windowHalfX = window.innerWidth / 2;
+let windowHalfY = window.innerHeight / 2;
 
-const material = new THREE.MeshLambertMaterial({
-  color: 0x00ffff,
-});
+let handModel, wrenchModel;
 
-const loader = new STLLoader();
-loader.load(
-  "./models/hand_low_poly.stl",
-  function (geometry) {
-    const SCALE_FACTOR = 0.12;
-    geometry.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-  },
-  (xhr) => {
-    console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+init();
+animate();
 
-window.addEventListener("resize", onWindowResize, false);
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+// ================================
+
+function init() {
+  container = document.getElementById("container");
+
+  camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  camera.position.z = 10;
+
+  scene = new THREE.Scene();
+
+  // ===== lights =====
+  const lightValues = [
+    { color: 0xb85412, intensity: 10, dist: 12, x: 1, y: 0, z: 8 },
+    { color: 0x17bfb1, intensity: 10, dist: 12, x: -2, y: 9, z: -10 },
+    { color: 0x1566a1, intensity: 10, dist: 10, x: 0, y: 7, z: 1 },
+    { color: 0xf5bc42, intensity: 10, dist: 10, x: -7, y: -5, z: -3 },
+    { color: 0xff0000, intensity: 30, dist: 10, x: 5, y: -4, z: 5 },
+  ];
+
+  lightValues.forEach(({ color, intensity, dist, x, y, z }) => {
+    // ===== point lights =====
+    const light = new THREE.PointLight(color, intensity, dist);
+    light.position.set(x, y, z);
+    scene.add(light);
+
+    // ===== light helpers =====
+    const lightHelper = new THREE.PointLightHelper(light, 0.5);
+    scene.add(lightHelper);
+  });
+
+  // ===== helpers ======
+  // const axesHelper = new THREE.AxesHelper(100);
+  // scene.add(axesHelper);
+
+  // ===== materials =====
+  const material = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+  });
+
+  const wireframeMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    wireframe: true,
+    wireframeLinewidth: 100,
+    transparent: true,
+  });
+
+  // ===== load models =====
+  const loader = new STLLoader();
+  loader.load(
+    "./models/hand_low_poly.stl",
+    (geometry) => {
+      const SCALE_FACTOR = 0.12;
+      geometry.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+
+      const wireframe = new THREE.Mesh(geometry, wireframeMaterial);
+
+      handModel = new THREE.Mesh(geometry, material);
+      // handModel.add(wireframe); // COMMENT OUT FOR NO WIREFRAME
+      scene.add(handModel);
+    },
+    (xhr) => {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    (error) => {
+      console.log(error);
+    }
+  );
+
+  loader.load(
+    "./models/wrench.stl",
+    (geometry) => {
+      const SCALE_FACTOR = 0.04;
+      geometry.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+
+      const wireframe = new THREE.Mesh(geometry, wireframeMaterial);
+
+      wrenchModel = new THREE.Mesh(geometry, material);
+      // wrenchModel.add(wireframe); // COMMENT OUT FOR NO WIREFRAME
+
+      // fiddle with the initial position
+      wrenchModel.position.x = 2;
+      wrenchModel.position.y = 2;
+      wrenchModel.position.z = 1.5;
+      wrenchModel.rotation.x = Math.PI / 5;
+      // wrenchModel.rotation.y = Math.PI / 2;
+      wrenchModel.rotation.z = Math.PI / -5;
+
+      scene.add(wrenchModel);
+    },
+    (xhr) => {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    (error) => {
+      console.log(error);
+    }
+  );
+
+  // ===== renderer =====
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.outputEncoding = THREE.sRGBEncoding; //
+  renderer.setPixelRatio(window.devicePixelRatio); //
   renderer.setSize(window.innerWidth, window.innerHeight);
-  render();
+  container.appendChild(renderer.domElement);
+
+  // ===== stats =====
+  stats = new Stats();
+  document.body.appendChild(stats.dom);
+
+  // ===== controls =====
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  // ===== listeners =====
+  document.addEventListener("mousemove", onDocumentMouseMove);
+  window.addEventListener("resize", onWindowResize);
 }
 
-const stats = new Stats();
-document.body.appendChild(stats.dom);
+function onWindowResize() {
+  windowHalfX = window.innerWidth / 2;
+  windowHalfY = window.innerHeight / 2;
+
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onDocumentMouseMove(event) {
+  mouseX = event.clientX - windowHalfX;
+  mouseY = event.clientY - windowHalfY;
+}
 
 function animate() {
   requestAnimationFrame(animate);
 
+  //
   controls.update();
 
-  render();
+  if (handModel) {
+    const t = clock.getElapsedTime();
+    handModel.position.y = 0.7 + Math.sin(t * 2) * 0.3;
+  }
 
+  if (wrenchModel) {
+    wrenchModel.rotation.y += 0.01;
+    // wrenchModel.rotation.x += 0.005;
+  }
+
+  render();
   stats.update();
 }
 
 function render() {
+  //
+  // camera.position.x = mouseX / windowHalfX;
+  // camera.position.y = mouseY / windowHalfY;
+
+  camera.lookAt(scene.position);
+
   renderer.render(scene, camera);
-}
-
-animate();
-
-// AXES HELPER
-const axesHelper = new THREE.AxesHelper(100);
-scene.add(axesHelper);
-
-// Lights
-const lights = [];
-const lightHelpers = [];
-const lightValues = [
-  { colour: 0xb85412, intensity: 8, dist: 12, x: 1, y: 0, z: 8 },
-  { colour: 0x17bfb1, intensity: 6, dist: 12, x: -2, y: 1, z: -10 },
-  { colour: 0x1566a1, intensity: 3, dist: 10, x: 0, y: 10, z: 1 },
-  { colour: 0x541cbd, intensity: 6, dist: 12, x: 0, y: -10, z: -1 },
-  { colour: 0xad18a8, intensity: 6, dist: 12, x: 10, y: 3, z: 0 },
-  { colour: 0xb51638, intensity: 6, dist: 12, x: -10, y: -1, z: 0 },
-];
-for (let i = 0; i < 6; i++) {
-  lights[i] = new THREE.PointLight(
-    lightValues[i]["colour"],
-    lightValues[i]["intensity"],
-    lightValues[i]["dist"]
-  );
-  lights[i].position.set(
-    lightValues[i]["x"],
-    lightValues[i]["y"],
-    lightValues[i]["z"]
-  );
-  scene.add(lights[i]);
-
-  //Helpers
-  lightHelpers[i] = new THREE.PointLightHelper(lights[i], 0.7);
-  scene.add(lightHelpers[i]);
 }
