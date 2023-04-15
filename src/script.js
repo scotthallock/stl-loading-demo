@@ -51,8 +51,8 @@ function init() {
     scene.add(light);
 
     // ===== light helpers =====
-    const lightHelper = new THREE.PointLightHelper(light, 0.5);
-    scene.add(lightHelper);
+    // const lightHelper = new THREE.PointLightHelper(light, 0.5);
+    // scene.add(lightHelper);
   });
 
   // ===== helpers ======
@@ -62,6 +62,10 @@ function init() {
   // ===== materials =====
   const material = new THREE.MeshPhongMaterial({
     color: 0xffffff,
+  });
+
+  const wrenchMaterial = new THREE.MeshLambertMaterial({
+    color: 0x545454,
   });
 
   const wireframeMaterial = new THREE.MeshBasicMaterial({
@@ -76,6 +80,7 @@ function init() {
   loader.load(
     "./models/hand_low_poly.stl",
     (geometry) => {
+      // fiddle with the size
       const SCALE_FACTOR = 0.12;
       geometry.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
@@ -96,20 +101,21 @@ function init() {
   loader.load(
     "./models/wrench.stl",
     (geometry) => {
+      // fiddle with the size
       const SCALE_FACTOR = 0.04;
       geometry.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
       const wireframe = new THREE.Mesh(geometry, wireframeMaterial);
 
-      wrenchModel = new THREE.Mesh(geometry, material);
+      wrenchModel = new THREE.Mesh(geometry, wrenchMaterial);
       // wrenchModel.add(wireframe); // COMMENT OUT FOR NO WIREFRAME
 
       // fiddle with the initial position
       wrenchModel.position.x = 2;
-      wrenchModel.position.y = 2;
+      wrenchModel.position.y = 1.5;
       wrenchModel.position.z = 1.5;
       wrenchModel.rotation.x = Math.PI / 5;
-      // wrenchModel.rotation.y = Math.PI / 2;
+      wrenchModel.rotation.y = Math.PI / 2;
       wrenchModel.rotation.z = Math.PI / -5;
 
       scene.add(wrenchModel);
@@ -123,7 +129,7 @@ function init() {
   );
 
   // ===== renderer =====
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.outputEncoding = THREE.sRGBEncoding; //
   renderer.setPixelRatio(window.devicePixelRatio); //
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -161,16 +167,18 @@ function animate() {
   requestAnimationFrame(animate);
 
   //
-  controls.update();
+  // controls.update();
 
+  // make sure models are loaded before you try to animate them
+  // refactor to make init() an async function
+  // and await init() before calling animate?
   if (handModel) {
     const t = clock.getElapsedTime();
-    handModel.position.y = 0.7 + Math.sin(t * 2) * 0.3;
+    handModel.position.y = Math.sin(t * 2) * 0.25;
   }
 
   if (wrenchModel) {
     wrenchModel.rotation.y += 0.01;
-    // wrenchModel.rotation.x += 0.005;
   }
 
   render();
@@ -179,8 +187,10 @@ function animate() {
 
 function render() {
   //
-  // camera.position.x = mouseX / windowHalfX;
-  // camera.position.y = mouseY / windowHalfY;
+  // can we make it so that the camera eases to the target positon
+  // ex. mouse exits top of the window and enters bottom,
+  camera.position.x = mouseX / windowHalfX;
+  camera.position.y = -mouseY / windowHalfY;
 
   camera.lookAt(scene.position);
 
