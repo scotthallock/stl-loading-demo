@@ -55,12 +55,9 @@ function init() {
     // scene.add(lightHelper);
   });
 
-  const topLight = new THREE.DirectionalLight(0xffffff, 0.2);
-  scene.add(topLight);
-
   // ===== helpers ======
-  const axesHelper = new THREE.AxesHelper(100);
-  scene.add(axesHelper);
+  // const axesHelper = new THREE.AxesHelper(100);
+  // scene.add(axesHelper);
 
   // ===== materials =====
   const material = new THREE.MeshPhongMaterial({
@@ -95,7 +92,7 @@ function init() {
       const wireframe = new THREE.Mesh(geometry, wireframeMaterial);
 
       handModel = new THREE.Mesh(geometry, material);
-      // handModel.add(wireframe); // COMMENT OUT FOR NO WIREFRAME
+      handModel.add(wireframe); // COMMENT OUT FOR NO WIREFRAME
       scene.add(handModel);
     },
     (xhr) => {
@@ -106,38 +103,8 @@ function init() {
     }
   );
 
-  // loader.load(
-  //   "./models/wrench.stl",
-  //   (geometry) => {
-  //     // fiddle with the size
-  //     const SCALE_FACTOR = 0.04;
-  //     geometry.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
-
-  //     const wireframe = new THREE.Mesh(geometry, wireframeMaterial);
-
-  //     wrenchModel = new THREE.Mesh(geometry, wrenchMaterial);
-  //     // wrenchModel.add(wireframe); // COMMENT OUT FOR NO WIREFRAME
-
-  //     // fiddle with the initial position
-  //     wrenchModel.position.x = 2;
-  //     wrenchModel.position.y = 1.5;
-  //     wrenchModel.position.z = 1.5;
-  //     wrenchModel.rotation.x = Math.PI / 5;
-  //     wrenchModel.rotation.y = Math.PI / 2;
-  //     wrenchModel.rotation.z = Math.PI / -5;
-
-  //     scene.add(wrenchModel);
-  //   },
-  //   (xhr) => {
-  //     console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-  //   },
-  //   (error) => {
-  //     console.log(error);
-  //   }
-  // );
-
   loader.load(
-    "./models/combination_wrench_reorigined_custom.stl",
+    "./models/wrench.stl",
     (geometry) => {
       // fiddle with the size
       const SCALE_FACTOR = 0.04;
@@ -174,12 +141,12 @@ function init() {
   container.appendChild(renderer.domElement);
 
   // ===== stats =====
-  stats = new Stats();
-  document.body.appendChild(stats.dom);
+  // stats = new Stats();
+  // document.body.appendChild(stats.dom);
 
   // ===== controls =====
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+  // controls = new OrbitControls(camera, renderer.domElement);
+  // controls.enableDamping = true;
 
   // ===== listeners =====
   document.addEventListener("mousemove", onDocumentMouseMove);
@@ -204,12 +171,8 @@ function onDocumentMouseMove(event) {
 function animate() {
   requestAnimationFrame(animate);
 
-  //
-  controls.update();
+  // controls.update(); // UNCOMMENT FOR ORBITAL CONTROLS
 
-  // make sure models are loaded before you try to animate them
-  // refactor to make init() an async function
-  // and await init() before calling animate?
   if (handModel) {
     const t = clock.getElapsedTime();
     handModel.position.y = Math.sin(t * 2) * 0.25;
@@ -220,15 +183,12 @@ function animate() {
   }
 
   render();
-  stats.update();
+  // stats.update(); // UNCOMMENT FOR STATS
 }
 
 function render() {
-  //
-  // can we make it so that the camera eases to the target positon
-  // ex. mouse exits top of the window and enters bottom,
-  // camera.position.x = mouseX / windowHalfX;
-  // camera.position.y = -mouseY / windowHalfY;
+  camera.position.x = mouseX / windowHalfX;
+  camera.position.y = -mouseY / windowHalfY;
 
   camera.lookAt(scene.position);
 
