@@ -55,17 +55,25 @@ function init() {
     // scene.add(lightHelper);
   });
 
+  const topLight = new THREE.DirectionalLight(0xffffff, 0.2);
+  scene.add(topLight);
+
   // ===== helpers ======
-  // const axesHelper = new THREE.AxesHelper(100);
-  // scene.add(axesHelper);
+  const axesHelper = new THREE.AxesHelper(100);
+  scene.add(axesHelper);
 
   // ===== materials =====
   const material = new THREE.MeshPhongMaterial({
     color: 0xffffff,
   });
 
-  const wrenchMaterial = new THREE.MeshLambertMaterial({
-    color: 0x545454,
+  const wrenchMaterial = new THREE.MeshPhongMaterial({
+    color: 0x222222,
+    specular: 0xffffff,
+    // combine: THREE.MultiplyOperation,
+    shininess: 30,
+    // specular: 0x111111,
+    reflectivity: 0.8,
   });
 
   const wireframeMaterial = new THREE.MeshBasicMaterial({
@@ -98,8 +106,38 @@ function init() {
     }
   );
 
+  // loader.load(
+  //   "./models/wrench.stl",
+  //   (geometry) => {
+  //     // fiddle with the size
+  //     const SCALE_FACTOR = 0.04;
+  //     geometry.scale(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+
+  //     const wireframe = new THREE.Mesh(geometry, wireframeMaterial);
+
+  //     wrenchModel = new THREE.Mesh(geometry, wrenchMaterial);
+  //     // wrenchModel.add(wireframe); // COMMENT OUT FOR NO WIREFRAME
+
+  //     // fiddle with the initial position
+  //     wrenchModel.position.x = 2;
+  //     wrenchModel.position.y = 1.5;
+  //     wrenchModel.position.z = 1.5;
+  //     wrenchModel.rotation.x = Math.PI / 5;
+  //     wrenchModel.rotation.y = Math.PI / 2;
+  //     wrenchModel.rotation.z = Math.PI / -5;
+
+  //     scene.add(wrenchModel);
+  //   },
+  //   (xhr) => {
+  //     console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+  //   },
+  //   (error) => {
+  //     console.log(error);
+  //   }
+  // );
+
   loader.load(
-    "./models/wrench.stl",
+    "./models/combination_wrench_reorigined_custom.stl",
     (geometry) => {
       // fiddle with the size
       const SCALE_FACTOR = 0.04;
@@ -112,11 +150,11 @@ function init() {
 
       // fiddle with the initial position
       wrenchModel.position.x = 2;
-      wrenchModel.position.y = 1.5;
-      wrenchModel.position.z = 1.5;
-      wrenchModel.rotation.x = Math.PI / 5;
-      wrenchModel.rotation.y = Math.PI / 2;
-      wrenchModel.rotation.z = Math.PI / -5;
+      wrenchModel.position.y = 3;
+      wrenchModel.position.z = 1;
+      wrenchModel.rotation.x = 0;
+      wrenchModel.rotation.y = -Math.PI / 10;
+      wrenchModel.rotation.z = 0.05;
 
       scene.add(wrenchModel);
     },
@@ -167,7 +205,7 @@ function animate() {
   requestAnimationFrame(animate);
 
   //
-  // controls.update();
+  controls.update();
 
   // make sure models are loaded before you try to animate them
   // refactor to make init() an async function
@@ -189,8 +227,8 @@ function render() {
   //
   // can we make it so that the camera eases to the target positon
   // ex. mouse exits top of the window and enters bottom,
-  camera.position.x = mouseX / windowHalfX;
-  camera.position.y = -mouseY / windowHalfY;
+  // camera.position.x = mouseX / windowHalfX;
+  // camera.position.y = -mouseY / windowHalfY;
 
   camera.lookAt(scene.position);
 
